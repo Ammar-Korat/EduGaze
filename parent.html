@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parents Dashboard - EduGaze</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #0d1117 0%, #1a1f29 100%);
+      color: #fff;
+      min-height: 100vh;
+    }
+
+    nav {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 1.2rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 30px;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #007bff, #00c6ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(0, 123, 255, 0.1);
+      padding: 10px 15px;
+      border-radius: 8px;
+      border: 1px solid rgba(0, 123, 255, 0.3);
+    }
+
+    .logout-btn {
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #ff6b6b, #ff5252);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .logout-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    .header {
+      margin-bottom: 40px;
+    }
+
+    .header h1 {
+      font-size: 2.2rem;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      color: #aaa;
+      font-size: 1rem;
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 25px;
+      border-bottom: 2px solid rgba(0, 123, 255, 0.3);
+      padding-bottom: 15px;
+    }
+
+    .children-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    .child-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .child-card:hover {
+      background: rgba(0, 123, 255, 0.1);
+      border-color: rgba(0, 123, 255, 0.5);
+      transform: translateY(-3px);
+    }
+
+    .child-card.active {
+      background: rgba(0, 123, 255, 0.15);
+      border-color: rgba(0, 123, 255, 0.8);
+    }
+
+    .child-info {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .child-grade {
+      font-size: 0.85rem;
+      color: #aaa;
+      margin-bottom: 12px;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .status-active {
+      background: rgba(81, 207, 102, 0.2);
+      color: #51cf66;
+    }
+
+    .status-offline {
+      background: rgba(170, 170, 170, 0.2);
+      color: #aaa;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    .summary-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 16px;
+      padding: 25px;
+      backdrop-filter: blur(20px);
+      transition: all 0.3s ease;
+    }
+
+    .summary-card:hover {
+      background: rgba(0, 123, 255, 0.1);
+      border-color: rgba(0, 123, 255, 0.5);
+      transform: translateY(-5px);
+    }
+
+    .card-label {
+      color: #aaa;
+      font-size: 0.85rem;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .card-value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #007bff, #00c6ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .card-icon {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 40px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border-radius: 10px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 1rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #007bff, #00c6ff);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0, 123, 255, 0.4);
+    }
+
+    .btn-secondary {
+      background: rgba(0, 123, 255, 0.1);
+      color: #00d4ff;
+      border: 1px solid rgba(0, 123, 255, 0.3);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(0, 123, 255, 0.2);
+    }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 30px;
+      margin-bottom: 40px;
+    }
+
+    .chart-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 16px;
+      padding: 30px;
+      backdrop-filter: blur(20px);
+    }
+
+    .chart-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 300px;
+    }
+
+    .section {
+      margin-bottom: 40px;
+    }
+
+    .stats-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .stats-table thead {
+      background: rgba(0, 123, 255, 0.1);
+    }
+
+    .stats-table th {
+      padding: 20px;
+      text-align: left;
+      color: #00d4ff;
+      font-weight: 600;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .stats-table td {
+      padding: 15px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .stats-table tr:hover {
+      background: rgba(0, 123, 255, 0.05);
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: #1a1f29;
+      border: 1px solid rgba(0, 123, 255, 0.3);
+      border-radius: 16px;
+      padding: 40px;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 15px;
+    }
+
+    .modal-header h2 {
+      font-size: 1.5rem;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: #aaa;
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .close-btn:hover {
+      color: #fff;
+    }
+
+    .report-section {
+      margin-bottom: 20px;
+    }
+
+    .report-section h3 {
+      color: #00d4ff;
+      margin-bottom: 10px;
+      font-size: 1.1rem;
+    }
+
+    .report-section p {
+      color: #aaa;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 768px) {
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .charts-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .action-buttons {
+        flex-direction: column;
+      }
+
+      .children-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .modal-content {
+        width: 90%;
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="nav-left">
+      <div class="logo">EduGaze Parents</div>
+    </div>
+    <div class="nav-right">
+      <div class="user-info">
+        <span>Parent Account</span>
+      </div>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="header">
+      <h1>Student Engagement Dashboard</h1>
+      <p>Monitor your child's classroom engagement and learning progress</p>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Select Your Child</h2>
+      <div class="children-grid">
+        <div class="child-card active" onclick="selectChild(this, 'ahmed')">
+          <div class="child-info">Ahmed Hassan</div>
+          <div class="child-grade">10th Grade</div>
+          <div class="status-badge status-active">Active</div>
+        </div>
+        <div class="child-card" onclick="selectChild(this, 'fatima')">
+          <div class="child-info">Fatima Al-Mansouri</div>
+          <div class="child-grade">9th Grade</div>
+          <div class="status-badge status-active">Active</div>
+        </div>
+        <div class="child-card" onclick="selectChild(this, 'omar')">
+          <div class="child-info">Omar Al-Mazrouei</div>
+          <div class="child-grade">11th Grade</div>
+          <div class="status-badge status-offline">Offline</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="card-icon">F</div>
+        <div class="card-label">Average Focus</div>
+        <div class="card-value">87%</div>
+      </div>
+      <div class="summary-card">
+        <div class="card-icon">H</div>
+        <div class="card-label">Happiness Level</div>
+        <div class="card-value">82%</div>
+      </div>
+      <div class="summary-card">
+        <div class="card-icon">P</div>
+        <div class="card-label">Participation Rate</div>
+        <div class="card-value">75%</div>
+      </div>
+      <div class="summary-card">
+        <div class="card-icon">S</div>
+        <div class="card-label">Stability Index</div>
+        <div class="card-value">0.94</div>
+      </div>
+    </div>
+
+    <div class="action-buttons">
+      <button class="btn btn-primary" onclick="viewSessionReport()">View Full Report</button>
+      <button class="btn btn-secondary" onclick="viewChart()">Engagement Trends</button>
+      <button class="btn btn-secondary" onclick="contactTeacher()">Message Teacher</button>
+    </div>
+
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h3 class="chart-title">Weekly Focus Trend</h3>
+        <div class="chart-container">
+          <canvas id="focusChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h3 class="chart-title">Emotion Breakdown</h3>
+        <div class="chart-container">
+          <canvas id="emotionChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Latest Session Summary</h2>
+      <table class="stats-table">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Value</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Session Duration</td>
+            <td>45 minutes</td>
+            <td>Good</td>
+          </tr>
+          <tr>
+            <td>Blink Rate</td>
+            <td>14.2 per minute</td>
+            <td>Healthy</td>
+          </tr>
+          <tr>
+            <td>Sleep Detection</td>
+            <td>0.7 seconds</td>
+            <td>Excellent</td>
+          </tr>
+          <tr>
+            <td>Emotion Drift Changes</td>
+            <td>8 shifts</td>
+            <td>Normal</td>
+          </tr>
+          <tr>
+            <td>Talking Time</td>
+            <td>12.5 seconds</td>
+            <td>Good</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="modal" id="reportModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Session Report</h2>
+        <button class="close-btn" onclick="closeModal()">X</button>
+      </div>
+      <div id="reportContent"></div>
+      <div class="action-buttons" style="margin-top: 30px;">
+        <button class="btn btn-primary" onclick="downloadReport()">Download PDF</button>
+        <button class="btn btn-secondary" onclick="shareReport()">Share Report</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var selectedChild = 'ahmed';
+
+    function selectChild(element, childId) {
+      var cards = document.querySelectorAll('.child-card');
+      for (var i = 0; i < cards.length; i++) {
+        cards[i].classList.remove('active');
+      }
+      element.classList.add('active');
+      selectedChild = childId;
+    }
+
+    function initCharts() {
+      var focusCtx = document.getElementById('focusChart').getContext('2d');
+      new Chart(focusCtx, {
+        type: 'line',
+        data: {
+          labels: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+          datasets: [{
+            label: 'Focus Level',
+            data: [85, 88, 82, 90, 87, 92, 89],
+            borderColor: '#00c6ff',
+            backgroundColor: 'rgba(0, 198, 255, 0.1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: {
+                color: '#aaa'
+              }
+            }
+          },
+          scales: {
+            y: {
+              ticks: {
+                color: '#aaa'
+              },
+              grid: {
+                color: 'rgba(255, 255, 255, 0.05)'
+              }
+            },
+            x: {
+              ticks: {
+                color: '#aaa'
+              },
+              grid: {
+                color: 'rgba(255, 255, 255, 0.05)'
+              }
+            }
+          }
+        }
+      });
+
+      var emotionCtx = document.getElementById('emotionChart').getContext('2d');
+      new Chart(emotionCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Focused', 'Happy', 'Surprised', 'Confused', 'Other'],
+          datasets: [{
+            data: [72, 12, 5, 8, 3],
+            backgroundColor: ['#00c6ff', '#51cf66', '#ff9f43', '#ffc107', '#666'],
+            borderColor: '#1a1f29',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: {
+                color: '#aaa'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function viewSessionReport() {
+      var html = '<div class="report-section"><h3>Today Session Overview</h3><p><strong>Date:</strong> Today</p><p><strong>Duration:</strong> 45 minutes</p><p><strong>School:</strong> Al Noor Academy</p></div><div class="report-section"><h3>Performance Metrics</h3><p><strong>Focus Score:</strong> 87% (Excellent)</p><p><strong>Happiness Score:</strong> 82% (Very Good)</p><p><strong>Participation:</strong> 75% of class time</p><p><strong>Engagement Stability:</strong> 0.94 (Very Stable)</p></div><div class="report-section"><h3>Recommendations</h3><p>Continue encouraging classroom participation. Your child shows strong focus and engagement levels.</p></div>';
+      document.getElementById('reportContent').innerHTML = html;
+      document.getElementById('reportModal').classList.add('active');
+    }
+
+    function viewChart() {
+      alert('View full engagement trends');
+    }
+
+    function contactTeacher() {
+      alert('Opening teacher messaging interface');
+    }
+
+    function closeModal() {
+      document.getElementById('reportModal').classList.remove('active');
+    }
+
+    function downloadReport() {
+      alert('Downloading session report as PDF');
+    }
+
+    function shareReport() {
+      alert('Sharing report via email');
+    }
+
+    function logout() {
+      window.location.href = 'index.html';
+    }
+
+    window.addEventListener('load', initCharts);
+  </script>
+</body>
+</html>
